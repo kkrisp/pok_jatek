@@ -1,0 +1,1 @@
+Parancssorban jatszhato kalandjatek.
