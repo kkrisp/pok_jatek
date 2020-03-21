@@ -1,1 +1,1 @@
-Parancssorban jatszhato kalandjatek.
+A pokkal kell halot szoni es a legyeket megenni.
