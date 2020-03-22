@@ -27,6 +27,20 @@ jobbra_menes_kepek = ["megy1_J", "megy2_J", "megy3_J", "megy4_J"]
 balra_menes_kepek = ["megy1_B", "megy2_B", "megy3_B", "megy4_B"]
 
 
+def kovetkezo_szam(jelen_szam, max_szam):
+    if (jelen_szam + 1) < max_szam:
+        return jelen_szam + 1
+    else:
+        return 0
+
+
+def elozo_szam(jelen_szam, max_szam):
+    if (jelen_szam - 1) < 0:
+        return max_szam - 1
+    else:
+        return jelen_szam - 1
+
+
 class Pont:
     def __init__(self, X=0, Y=0):
         self.X = X
@@ -144,7 +158,7 @@ class Mozdulat:
 
     def rajzol(self, kepernyo, x, y):
         for metszet_szama in range(self.magassag):
-            kepernyo.addstr(x+metszet_szama, y, self.metszetek[metszet_szama])
+            kepernyo.addstr(x-self.magassag+metszet_szama, y, self.metszetek[metszet_szama])
 
 
 class Karakter:
@@ -166,6 +180,7 @@ class Karakter:
             "megy4_B" : None
         }
         self.pozicio = geo.Pont()
+        self.halo_kimenet = geo.Pont(self.pozicio.x-self.magassag+1, self.pozicio.y)
         self.irany = 1
         self.kepkocka = 0
     
@@ -257,13 +272,18 @@ class Pokhalo:
 
     def rajzol(self, kepernyo):
         for sz in self.szalak:
-            geo.vonalat_rajzol(sz, kepernyo)
+            geo.vonalat_rajzol(sz, kepernyo, elem='.')
 
 
 idomero = 0
 halotszo = False
-halon_maszik = -1
+halon_maszik = 2
+halon_maszik_elozo = 0
 sajat_halo = Pokhalo()
+sajat_halo.uj_szal(geo.Pont(40, 0), geo.Pont(40, 80))
+sajat_halo.uj_szal(geo.Pont(0, 0),  geo.Pont(40, 0))
+sajat_halo.uj_szal(geo.Pont(0, 80), geo.Pont(40, 80))
+kozelben = "kozeleben --- van      "
 try:
     fokepernyo = curses.initscr() # letrehoz egy 'curses' ablakot
     fokepernyo.timeout(200)
@@ -287,41 +307,71 @@ try:
         sajat_halo.rajzol(fokepernyo)
         botond.rajzol()
         fokepernyo.addstr(2, 2, "Kilepes: 'X', mozgas: nyilak, haloszoves: 'H'")
+        fokepernyo.addstr(3, 2, kozelben)
         c = fokepernyo.getch()
         if c == ord('x') or c == ord("X"):
             break
         elif c == JOBBRA:
-            botond.jobbralep()
+            kovetkezo_hely = sajat_halo.szalak[halon_maszik].y_helyen(botond.pozicio.y+1)
+            if kovetkezo_hely == botond.pozicio.x+1:
+                botond.fellep()
+            elif kovetkezo_hely == botond.pozicio.x-1:
+                botond.lelep()
+            else:
+                botond.jobbralep()
         elif c == BALRA:
-            botond.balralep()
+            kovetkezo_hely = sajat_halo.szalak[halon_maszik].y_helyen(botond.pozicio.y-1)
+            if kovetkezo_hely < botond.pozicio.x:
+                botond.lelep()
+            elif kovetkezo_hely > botond.pozicio.x:
+                botond.fellep()
+            else:
+                botond.balralep()
         elif c == FEL:
-            botond.fellep()
+            #botond.fellep()
+            szamlalo = 0
+            szalak_szama = len(sajat_halo.szalak)
+            while szamlalo < szalak_szama:
+                szamlalo += 1
+                halon_maszik = kovetkezo_szam(halon_maszik, szalak_szama)
+                if geo.pont_vonal_kornyezeteben(botond.pozicio, sajat_halo.szalak[halon_maszik], 3):
+                    break
         elif c == LE:
-            botond.lelep()
+            #botond.lelep()
+            szamlalo = 0
+            szalak_szama = len(sajat_halo.szalak)
+            while szamlalo < szalak_szama:
+                szamlalo += 1
+                halon_maszik = elozo_szam(halon_maszik, szalak_szama)
+                if geo.pont_vonal_kornyezeteben(botond.pozicio, sajat_halo.szalak[halon_maszik], 3):
+                    break
         elif c == ord('h') or c == ord('H'):
             halotszo = not halotszo
             if halotszo:
                 sajat_halo.uj_szal(botond.pozicio, botond.pozicio)
         elif c == ord('g') or c == ord('G'):
-            if halon_maszik < 0:
-                halon_maszik = -1
-                for sz in sajat_halo.szalak:
-                    if geo.pont_vonal_kornyezeteben(botond.pozicio, sz, 10):
-                        break
-                    halon_maszik += 1
-                halon_maszik = -1
+            if halon_maszik < len(sajat_halo.szalak)-1:
+                halon_maszik += 1
             else:
-                halon_maszik = -1
+                halon_maszik = 0
+        elif c == ord('c') or c == ord('C'):
+            szamlalo = 0
+            szalak_szama = len(sajat_halo.szalak)
+            while szamlalo < szalak_szama:
+                szamlalo += 1
+                halon_maszik = kovetkezo_szam(halon_maszik, szalak_szama)
+                if geo.pont_vonal_kornyezeteben(botond.pozicio, sajat_halo.szalak[halon_maszik], 3):
+                    break
         else:
             pass
 
         if halotszo:
             sajat_halo.szalak[sajat_halo.utolsoszal].uj_vegpont(botond.pozicio)
         if halon_maszik >= 0:
-            fokepernyo.addstr(5, 5, "halon maszik")
             foldre = sajat_halo.szalak[halon_maszik].y_helyen(botond.pozicio.y)
             if foldre:
                 botond.pozicio.x = int(foldre)
+
         fokepernyo.refresh()
         idomero += 1
         if idomero >= 1000000:

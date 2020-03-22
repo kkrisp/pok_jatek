@@ -93,46 +93,44 @@ class Vektor:
             self.ctan = self.vetulet_x / self.vetulet_y
 
     def x_helyen(self, x):
-        y = -1
-        if self.kezdopont.x < x < self.vegpont.x or self.kezdopont.x > x > self.vegpont.x:
+        if self.kezdopont.x <= x <= self.vegpont.x or self.kezdopont.x >= x >= self.vegpont.x:
             y = (x-self.kezdopont.x) * self.tan
-            if self.kezdopont.y < y < self.vegpont.y or self.kezdopont.y > y > self.vegpont.y:
-                return y + self.kezdopont.y
-        return None
+            return y + self.kezdopont.y
+        else:
+            return None
 
     def y_helyen(self, y):
-        x = -1
-        if self.kezdopont.y < y < self.vegpont.y or self.kezdopont.y > y > self.vegpont.y:
+        if self.kezdopont.y <= y <= self.vegpont.y or self.kezdopont.y >= y >= self.vegpont.y:
             x = (y-self.kezdopont.y) * self.ctan
-            if self.kezdopont.x < x < self.vegpont.x or self.kezdopont.x > x > self.vegpont.x:
-                return x + self.kezdopont.x
-        return None
+            return x + self.kezdopont.x
+        else:
+            return None
 
 
 def pont_vonal_kornyezeteben(pont, vonal, kornyezet):
-    if abs(vonal.vetulet_x) >= abs(vonal.vetulet_y):
-        x_metszet = vonal.x_helyen(pont.x)
-        if x_metszet is None:
+    if abs(vonal.vetulet_x) > abs(vonal.vetulet_y):
+        y_szamolt = vonal.x_helyen(pont.x)
+        if y_szamolt is None:
             return False
-        min_y = x_metszet - kornyezet + vonal.kezdopont.y
-        max_y = x_metszet + kornyezet + vonal.kezdopont.y
-        if min_y < pont.y < max_y:
+        min_y = y_szamolt - kornyezet
+        max_y = y_szamolt + kornyezet
+        if min_y <= pont.y <= max_y or min_y >= pont.y >= max_y:
             return True
         else:
             return False
     else:
-        x_metszet = vonal.y_helyen(pont.y)
-        if x_metszet is None:
+        y_szamolt = vonal.y_helyen(pont.y)
+        if y_szamolt is None:
             return False
-        min_y = x_metszet - kornyezet + vonal.kezdopont.x
-        max_y = x_metszet + kornyezet + vonal.kezdopont.x
-        if min_y < pont.x < max_y:
+        min_y = y_szamolt - kornyezet
+        max_y = y_szamolt + kornyezet
+        if min_y <= pont.x <= max_y or min_y >= pont.x >= max_y:
             return True
         else:
             return False
 
 
-def vonalat_rajzol(vonal, kepernyo, elem = '-'):
+def vonalat_rajzol(vonal, kepernyo, elem='-'):
     y = vonal.kezdopont.y
     x = vonal.kezdopont.x
     y0 = vonal.kezdopont.y
