@@ -2,6 +2,7 @@ import sys
 import math
 import curses # kontroll a kepernyo felett
 import random
+import geometria as geo
 
 FEL = 65
 LE = 66
@@ -75,6 +76,54 @@ class Vonal:
         else:
             return math.atan(self.atfogo_X/self.atfogo_Y)
 
+    def rajzol(self, kepernyo):
+            szal_eleme = "-"
+            irany_y = 1
+            irany_x = 1
+            if self.atfogo_Y < 0:
+                irany_y = -1
+            if self.atfogo_X < 0:
+                irany_x = -1
+
+            elem_x = self.A.X
+            elem_y = self.A.Y
+
+            if self.atfogo_X == 0:
+                for i in range(self.atfogo_Y*irany_y):
+                    kepernyo.addstr(elem_x, elem_y, szal_eleme)
+                    elem_y += irany_y
+
+            elif self.atfogo_Y == 0:
+                for i in range(self.atfogo_X*irany_x):
+                    kepernyo.addstr(elem_x, elem_y, szal_eleme)
+                    elem_x += irany_x
+
+            elif abs(self.atfogo_X) < abs(self.atfogo_Y):
+                szakasz_hossza = int(abs(1.0*self.atfogo_Y/self.atfogo_X))
+                maradek = abs(self.atfogo_Y) % abs(self.atfogo_X)
+                for lepes in range(self.atfogo_X*irany_x):
+                    for i in range(szakasz_hossza):
+                        kepernyo.addstr(elem_x, elem_y, szal_eleme)
+                        elem_y += irany_y
+                    if maradek > 0:
+                        kepernyo.addstr(elem_x, elem_y, szal_eleme)
+                        elem_y += irany_y
+                        maradek -= 1
+                    elem_x += irany_x
+            else:
+                szakasz_hossza = int(abs(1.0 * self.atfogo_X/self.atfogo_Y))
+                maradek = abs(self.atfogo_X) % abs(self.atfogo_Y)
+                for lepes in range(self.atfogo_Y*irany_y):
+                    for i in range(szakasz_hossza):
+                        kepernyo.addstr(elem_x, elem_y, szal_eleme)
+                        elem_x += irany_x
+                    if maradek > 0:
+                        kepernyo.addstr(elem_x, elem_y, szal_eleme)
+                        elem_x += irany_x
+                        maradek -= 1
+                    elem_y += irany_y
+
+
 
 def random_iranyba(karakter_ami_lep):
     random_szam = random.random()
@@ -116,18 +165,17 @@ class Karakter:
             "megy3_B" : None,
             "megy4_B" : None
         }
-        self.pozicio_X = 0
-        self.pozicio_Y = 0
+        self.pozicio = geo.Pont()
         self.irany = 1
         self.kepkocka = 0
     
     def rajzol(self):
         if self.irany > 0:
             self.mozdulatok[jobbra_menes_kepek[int(self.kepkocka/1)]]\
-                .rajzol(self.megjelenesi_kepernyo, self.pozicio_X, self.pozicio_Y)
+                .rajzol(self.megjelenesi_kepernyo, self.pozicio.x, self.pozicio.y)
         else:
             self.mozdulatok[balra_menes_kepek[int(self.kepkocka/1)]]\
-                .rajzol(self.megjelenesi_kepernyo, self.pozicio_X, self.pozicio_Y)
+                .rajzol(self.megjelenesi_kepernyo, self.pozicio.x, self.pozicio.y)
 
     def ujkep(self):
         if self.kepkocka >= 3:
@@ -136,21 +184,21 @@ class Karakter:
             self.kepkocka += 1
 
     def jobbralep(self):
-        self.pozicio_Y += 1
+        self.pozicio.y += 1
         self.irany = 1
         self.ujkep()
 
     def balralep(self):
-        self.pozicio_Y -= 1
+        self.pozicio.y -= 1
         self.irany = -1
         self.ujkep()
 
     def fellep(self):
-        self.pozicio_X -= 1
+        self.pozicio.x -= 1
         self.ujkep()
 
     def lelep(self):
-        self.pozicio_X += 1
+        self.pozicio.x += 1
         self.ujkep()
 
     def alak_feltoltese(self, alak_filenev):
@@ -199,62 +247,17 @@ class Vilag:
 
 class Pokhalo:
     def __init__(self):
-        self.szalak = [Vonal()]
+        self.szalak = [geo.Vektor()]
         self.utolsoszal = 0
 
-    def uj_szal(self, AX, AY, BX, BY):
-        ujszal = Vonal()
-        ujszal.pont_beallitas(AX, AY, BX, BY)
+    def uj_szal(self, kezdopont, vegpont):
+        ujszal = geo.Vektor(kezdopont, vegpont)
         self.szalak.append(ujszal)
         self.utolsoszal += 1
 
     def rajzol(self, kepernyo):
-        szal_eleme = "-"
         for sz in self.szalak:
-            irany_y = 1
-            irany_x = 1
-            if sz.atfogo_Y < 0:
-                irany_y = -1
-            if sz.atfogo_X < 0:
-                irany_x = -1
-
-            elem_x = sz.A.X
-            elem_y = sz.A.Y
-
-            if sz.atfogo_X == 0:
-                for i in range(sz.atfogo_Y*irany_y):
-                    kepernyo.addstr(elem_x, elem_y, szal_eleme)
-                    elem_y += irany_y
-
-            elif sz.atfogo_Y == 0:
-                for i in range(sz.atfogo_X*irany_x):
-                    kepernyo.addstr(elem_x, elem_y, szal_eleme)
-                    elem_x += irany_x
-
-            elif abs(sz.atfogo_X) < abs(sz.atfogo_Y):
-                szakasz_hossza = int(abs(1.0*sz.atfogo_Y/sz.atfogo_X))
-                maradek = abs(sz.atfogo_Y) % abs(sz.atfogo_X)
-                for lepes in range(sz.atfogo_X*irany_x):
-                    for i in range(szakasz_hossza):
-                        kepernyo.addstr(elem_x, elem_y, szal_eleme)
-                        elem_y += irany_y
-                    if maradek > 0:
-                        kepernyo.addstr(elem_x, elem_y, szal_eleme)
-                        elem_y += irany_y
-                        maradek -= 1
-                    elem_x += irany_x
-            else:
-                szakasz_hossza = int(abs(1.0 * sz.atfogo_X/sz.atfogo_Y))
-                maradek = abs(sz.atfogo_X) % abs(sz.atfogo_Y)
-                for lepes in range(sz.atfogo_Y*irany_y):
-                    for i in range(szakasz_hossza):
-                        kepernyo.addstr(elem_x, elem_y, szal_eleme)
-                        elem_x += irany_x
-                    if maradek > 0:
-                        kepernyo.addstr(elem_x, elem_y, szal_eleme)
-                        elem_x += irany_x
-                        maradek -= 1
-                    elem_y += irany_y
+            geo.vonalat_rajzol(sz, kepernyo)
 
 
 idomero = 0
@@ -268,22 +271,12 @@ try:
     curses.curs_set(0)            # a kurzor ne latsszon a kepernyon
     kepernyo_szelesseg, kepernyo_magassag = fokepernyo.getmaxyx()
 
-    botond = Karakter(fokepernyo, 2)
-    botond.pozicio_X = 10
-    botond.pozicio_Y = 10
-    botond.alak_feltoltese("pok.txt")
-
-    legy = Karakter(fokepernyo, 2)
-    legy.pozicio_Y = 25
-    legy.pozicio_X = 25
-    legy.alak_feltoltese("pok.txt")
+    botond = Karakter(fokepernyo, 1)
+    botond.pozicio = geo.Pont(10, 10)
+    botond.alak_feltoltese("legy.txt")
 
     szavanna = Vilag(fokepernyo)
     szavanna.feltoltes("doboz.txt")
-    
-    def kozeprerajzol(string_bemenet):
-        fokepernyo.addstr(int(kepernyo_szelesseg/2), int(kepernyo_magassag/2), string_bemenet)
-        #fokepernyo.refresh()
 
     vilag_faljnev = "siksag.txt"
     c = '<gomb>'
@@ -291,8 +284,6 @@ try:
         fokepernyo.clear()
         szavanna.rajzol()
         sajat_halo.rajzol(fokepernyo)
-        #botond.pozicio_X = szavanna.talaj[botond.pozicio_Y]-botond.magassag
-        #legy.pozicio_X = szavanna.talaj[legy.pozicio_Y]-legy.magassag
         botond.rajzol()
         c = fokepernyo.getch()
         if c == ord('x') or c == ord("X"):
@@ -308,13 +299,12 @@ try:
         elif c == ord('h') or c == ord('H'):
             halotszo = not halotszo
             if halotszo:
-                sajat_halo.uj_szal(botond.pozicio_X+botond.magassag-1, botond.pozicio_Y, botond.pozicio_X+botond.magassag-1, botond.pozicio_Y)
+                sajat_halo.uj_szal(botond.pozicio, botond.pozicio)
         else:
             pass
-        if idomero%2 == 0:
-            random_iranyba(legy)
+
         if halotszo:
-            sajat_halo.szalak[sajat_halo.utolsoszal].pont_beallitas(None, None, botond.pozicio_X+botond.magassag-1, botond.pozicio_Y)
+            sajat_halo.szalak[sajat_halo.utolsoszal].uj_vegpont(botond.pozicio)
         fokepernyo.refresh()
         idomero += 1
         if idomero >= 1000000:
