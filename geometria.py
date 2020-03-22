@@ -92,13 +92,44 @@ class Vektor:
         else:
             self.ctan = self.vetulet_x / self.vetulet_y
 
+    def x_helyen(self, x):
+        y = -1
+        if self.kezdopont.x < x < self.vegpont.x or self.kezdopont.x > x > self.vegpont.x:
+            y = (x-self.kezdopont.x) * self.tan
+            if self.kezdopont.y < y < self.vegpont.y or self.kezdopont.y > y > self.vegpont.y:
+                return y + self.kezdopont.y
+        return None
+
+    def y_helyen(self, y):
+        x = -1
+        if self.kezdopont.y < y < self.vegpont.y or self.kezdopont.y > y > self.vegpont.y:
+            x = (y-self.kezdopont.y) * self.ctan
+            if self.kezdopont.x < x < self.vegpont.x or self.kezdopont.x > x > self.vegpont.x:
+                return x + self.kezdopont.x
+        return None
+
 
 def pont_vonal_kornyezeteben(pont, vonal, kornyezet):
-    szamitott_pont = (pont.x + vonal.kezdopont.x) * vonal.szog.cos
-    if (szamitott_pont - kornyezet) < pont.y and (szamitott_pont + kornyezet) > pont.y:
-        return True
+    if abs(vonal.vetulet_x) >= abs(vonal.vetulet_y):
+        x_metszet = vonal.x_helyen(pont.x)
+        if x_metszet is None:
+            return False
+        min_y = x_metszet - kornyezet + vonal.kezdopont.y
+        max_y = x_metszet + kornyezet + vonal.kezdopont.y
+        if min_y < pont.y < max_y:
+            return True
+        else:
+            return False
     else:
-        return False
+        x_metszet = vonal.y_helyen(pont.y)
+        if x_metszet is None:
+            return False
+        min_y = x_metszet - kornyezet + vonal.kezdopont.x
+        max_y = x_metszet + kornyezet + vonal.kezdopont.x
+        if min_y < pont.x < max_y:
+            return True
+        else:
+            return False
 
 
 def vonalat_rajzol(vonal, kepernyo, elem = '-'):

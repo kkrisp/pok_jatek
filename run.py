@@ -262,6 +262,7 @@ class Pokhalo:
 
 idomero = 0
 halotszo = False
+halon_maszik = -1
 sajat_halo = Pokhalo()
 try:
     fokepernyo = curses.initscr() # letrehoz egy 'curses' ablakot
@@ -271,9 +272,9 @@ try:
     curses.curs_set(0)            # a kurzor ne latsszon a kepernyon
     kepernyo_szelesseg, kepernyo_magassag = fokepernyo.getmaxyx()
 
-    botond = Karakter(fokepernyo, 1)
+    botond = Karakter(fokepernyo, 2)
     botond.pozicio = geo.Pont(10, 10)
-    botond.alak_feltoltese("legy.txt")
+    botond.alak_feltoltese("pok.txt")
 
     szavanna = Vilag(fokepernyo)
     szavanna.feltoltes("doboz.txt")
@@ -285,6 +286,7 @@ try:
         szavanna.rajzol()
         sajat_halo.rajzol(fokepernyo)
         botond.rajzol()
+        fokepernyo.addstr(2, 2, "Kilepes: 'X', mozgas: nyilak, haloszoves: 'H'")
         c = fokepernyo.getch()
         if c == ord('x') or c == ord("X"):
             break
@@ -300,11 +302,26 @@ try:
             halotszo = not halotszo
             if halotszo:
                 sajat_halo.uj_szal(botond.pozicio, botond.pozicio)
+        elif c == ord('g') or c == ord('G'):
+            if halon_maszik < 0:
+                halon_maszik = -1
+                for sz in sajat_halo.szalak:
+                    if geo.pont_vonal_kornyezeteben(botond.pozicio, sz, 10):
+                        break
+                    halon_maszik += 1
+                halon_maszik = -1
+            else:
+                halon_maszik = -1
         else:
             pass
 
         if halotszo:
             sajat_halo.szalak[sajat_halo.utolsoszal].uj_vegpont(botond.pozicio)
+        if halon_maszik >= 0:
+            fokepernyo.addstr(5, 5, "halon maszik")
+            foldre = sajat_halo.szalak[halon_maszik].y_helyen(botond.pozicio.y)
+            if foldre:
+                botond.pozicio.x = int(foldre)
         fokepernyo.refresh()
         idomero += 1
         if idomero >= 1000000:
