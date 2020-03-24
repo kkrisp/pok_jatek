@@ -275,15 +275,27 @@ class Pokhalo:
             geo.vonalat_rajzol(sz, kepernyo, elem='.')
 
 
+def szalat_valaszt(halo, jelenlegi_szal):
+    szamlalo2 = 0
+    szalak_szama2 = len(halo.szalak)
+    while szamlalo2 < szalak_szama2:
+        szamlalo2 += 1
+        jelenlegi_szal = kovetkezo_szam(jelenlegi_szal, szalak_szama2)
+        if geo.pont_vonal_kornyezeteben(botond.pozicio, sajat_halo.szalak[halon_maszik], 3):
+            break
+    return jelenlegi_szal
+
 idomero = 0
 halotszo = False
-halon_maszik = 2
+halon_maszik = 1
 halon_maszik_elozo = 0
 sajat_halo = Pokhalo()
-sajat_halo.uj_szal(geo.Pont(40, 0), geo.Pont(40, 80))
-sajat_halo.uj_szal(geo.Pont(0, 0),  geo.Pont(40, 0))
-sajat_halo.uj_szal(geo.Pont(0, 80), geo.Pont(40, 80))
+sajat_halo.uj_szal(geo.Pont(40, 5), geo.Pont(40, 110))
+sajat_halo.uj_szal(geo.Pont(0, 0),  geo.Pont(40, 10))
+sajat_halo.uj_szal(geo.Pont(0, 120), geo.Pont(40, 110))
 kozelben = "kozeleben --- van      "
+kov_hely = -1
+most_hely = -1
 try:
     fokepernyo = curses.initscr() # letrehoz egy 'curses' ablakot
     fokepernyo.timeout(200)
@@ -293,7 +305,7 @@ try:
     kepernyo_szelesseg, kepernyo_magassag = fokepernyo.getmaxyx()
 
     botond = Karakter(fokepernyo, 2)
-    botond.pozicio = geo.Pont(10, 10)
+    botond.pozicio = geo.Pont(40, 18)
     botond.alak_feltoltese("pok.txt")
 
     szavanna = Vilag(fokepernyo)
@@ -303,7 +315,10 @@ try:
     c = '<gomb>'
     while 1:
         fokepernyo.clear()
-        szavanna.rajzol()
+        #szavanna.rajzol()
+        hely_debug = "most: " + str(most_hely) + " kov.: " + str(kov_hely)
+        fokepernyo.addstr(5, 40, hely_debug)
+
         sajat_halo.rajzol(fokepernyo)
         botond.rajzol()
         fokepernyo.addstr(2, 2, "Kilepes: 'X', mozgas: nyilak, haloszoves: 'H'")
@@ -313,17 +328,25 @@ try:
             break
         elif c == JOBBRA:
             kovetkezo_hely = sajat_halo.szalak[halon_maszik].y_helyen(botond.pozicio.y+1)
-            if kovetkezo_hely == botond.pozicio.x+1:
+            kov_hely = kovetkezo_hely
+            most_hely = botond.pozicio.x
+            if kovetkezo_hely is None:
+                pass
+            elif kovetkezo_hely < int(botond.pozicio.x-1):
                 botond.fellep()
-            elif kovetkezo_hely == botond.pozicio.x-1:
+            elif kovetkezo_hely > int(botond.pozicio.x):
                 botond.lelep()
             else:
                 botond.jobbralep()
         elif c == BALRA:
             kovetkezo_hely = sajat_halo.szalak[halon_maszik].y_helyen(botond.pozicio.y-1)
-            if kovetkezo_hely < botond.pozicio.x:
+            kov_hely = kovetkezo_hely
+            most_hely = botond.pozicio.x
+            if kovetkezo_hely is None:
+                pass
+            elif kovetkezo_hely > int(botond.pozicio.x+1):
                 botond.lelep()
-            elif kovetkezo_hely > botond.pozicio.x:
+            elif kovetkezo_hely < int(botond.pozicio.x):
                 botond.fellep()
             else:
                 botond.balralep()
@@ -331,6 +354,7 @@ try:
             #botond.fellep()
             szamlalo = 0
             szalak_szama = len(sajat_halo.szalak)
+            if halotszo: szalak_szama -= 1
             while szamlalo < szalak_szama:
                 szamlalo += 1
                 halon_maszik = kovetkezo_szam(halon_maszik, szalak_szama)
@@ -340,6 +364,7 @@ try:
             #botond.lelep()
             szamlalo = 0
             szalak_szama = len(sajat_halo.szalak)
+            if halotszo: szalak_szama -= 1
             while szamlalo < szalak_szama:
                 szamlalo += 1
                 halon_maszik = elozo_szam(halon_maszik, szalak_szama)
@@ -369,8 +394,8 @@ try:
             sajat_halo.szalak[sajat_halo.utolsoszal].uj_vegpont(botond.pozicio)
         if halon_maszik >= 0:
             foldre = sajat_halo.szalak[halon_maszik].y_helyen(botond.pozicio.y)
-            if foldre:
-                botond.pozicio.x = int(foldre)
+            #if foldre:
+            #    botond.pozicio.x = int(foldre)
 
         fokepernyo.refresh()
         idomero += 1
