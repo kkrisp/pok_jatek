@@ -270,9 +270,14 @@ class Pokhalo:
         self.szalak.append(ujszal)
         self.utolsoszal += 1
 
-    def rajzol(self, kepernyo):
+    def rajzol(self, kepernyo, foszal):
+        cnt = 0
         for sz in self.szalak:
-            geo.vonalat_rajzol(sz, kepernyo, elem='.')
+            if cnt != foszal:
+                geo.vonalat_rajzol(sz, kepernyo, elem='.')
+            else:
+                geo.vonalat_rajzol(sz, kepernyo, elem='*')
+            cnt += 1
 
 
 def szalat_valaszt(halo, jelenlegi_szal):
@@ -319,7 +324,7 @@ try:
         hely_debug = "most: " + str(most_hely) + " kov.: " + str(kov_hely)
         fokepernyo.addstr(5, 40, hely_debug)
 
-        sajat_halo.rajzol(fokepernyo)
+        sajat_halo.rajzol(fokepernyo, halon_maszik)
         botond.rajzol()
         fokepernyo.addstr(2, 2, "Kilepes: 'X', mozgas: nyilak, haloszoves: 'H'")
         fokepernyo.addstr(3, 2, kozelben)
