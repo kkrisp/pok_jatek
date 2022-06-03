@@ -286,7 +286,7 @@ def szalat_valaszt(halo, jelenlegi_szal):
     while szamlalo2 < szalak_szama2:
         szamlalo2 += 1
         jelenlegi_szal = kovetkezo_szam(jelenlegi_szal, szalak_szama2)
-        if geo.pont_vonal_kornyezeteben(botond.pozicio, sajat_halo.szalak[halon_maszik], 3):
+        if geo.pont_vonal_kornyezeteben(botond.pozicio, sajat_halo.szalak[halon_maszik], 5):
             break
     return jelenlegi_szal
 
@@ -296,8 +296,8 @@ halon_maszik = 1
 halon_maszik_elozo = 0
 sajat_halo = Pokhalo()
 sajat_halo.uj_szal(geo.Pont(40, 5), geo.Pont(40, 110))
-sajat_halo.uj_szal(geo.Pont(0, 0),  geo.Pont(40, 10))
-sajat_halo.uj_szal(geo.Pont(0, 120), geo.Pont(40, 110))
+sajat_halo.uj_szal(geo.Pont(5, 5),  geo.Pont(40, 10))
+sajat_halo.uj_szal(geo.Pont(5, 120), geo.Pont(40, 110))
 kozelben = "kozeleben --- van      "
 kov_hely = -1
 most_hely = -1
